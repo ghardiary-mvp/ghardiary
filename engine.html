@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UC Discovery Engine</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F4F4F4;font-family:Inter,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0F0F0F}
+.wrap{max-width:760px;margin:0 auto;background:#fff;min-height:100vh}
+.banner{background:#F2F0FF;color:#3B2A8F;font-size:12px;font-weight:600;padding:8px 16px;text-align:center}
+header{padding:22px 22px 6px}
+h1{font-size:26px;margin:0 0 6px}
+h2{font-size:18px;margin:0}
+.sub{color:#5C5C5C;font-size:15px;line-height:22px;margin:0}
+section{padding:18px 22px;border-top:1px solid #EFEFEF;display:flex;flex-direction:column;gap:12px}
+.muted{color:#5C5C5C;font-size:13px;line-height:19px}
+.pipe{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.step{background:#F7F7F7;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.step b{font-size:20px}
+.step span{font-size:12px;color:#5C5C5C;line-height:16px}
+@media(max-width:560px){.pipe{grid-template-columns:repeat(2,minmax(0,1fr))}}
+textarea{width:100%;min-height:110px;border:1px solid #DADADA;border-radius:12px;padding:12px;font:inherit;font-size:15px;resize:vertical}
+.btn{border:none;border-radius:12px;padding:13px 16px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;background:#0F0F0F;color:#fff}
+.btn:disabled{opacity:.5}
+.chip{font:inherit;font-size:12px;font-weight:600;background:#F5F5F5;border:1px solid #E6E6E6;padding:8px 12px;border-radius:999px;cursor:pointer;text-align:left}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.card{border:1px solid #EFEFEF;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.kv{background:#F7F7F7;border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:2px}
+.kv span{font-size:11px;color:#5C5C5C;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.kv b{font-size:14px}
+.quote{background:#F2F0FF;border-left:3px solid #6E42E5;border-radius:8px;padding:10px 12px;font-size:14px;line-height:20px}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:18px}
+.ok{color:#1F6B3A}.bad{color:#8A1C1C}
+.bar{display:grid;grid-template-columns:150px 1fr 48px;gap:10px;align-items:center;font-size:13px}
+.bar .track{background:#F2F2F2;border-radius:6px;height:18px;overflow:hidden}
+.bar .fill{height:100%;background:#6E42E5;border-radius:6px}
+.bar .fill.hi{background:#0F0F0F}
+.spin{width:22px;height:22px;border:3px solid #E6E6E6;border-top-color:#6E42E5;border-radius:50%;animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.err{background:#FDEEEE;color:#8A1C1C;border-radius:12px;padding:12px;font-size:13px}
+a{color:#3B2A8F}
+footer{padding:18px 22px 30px;border-top:1px solid #EFEFEF}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner">PM case study on Urban Company's 90 day repeat booking · built from public posts only · not an Urban Company product</div>
+  <header>
+    <h1>UC Discovery Engine</h1>
+    <p class="sub">Why don't first-time Urban Company customers book again within 90 days? This engine reads what people write in public and tags every post against a fixed codebook, with checks on the AI.</p>
+  </header>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="pipe">
+      <div class="step"><b>~32,300</b><span>public posts collected: Play Store reviews, Reddit threads, YouTube comments</span></div>
+      <div class="step"><b>~19,700</b><span>kept after cleaning and removing duplicates and one-liners</span></div>
+      <div class="step"><b>1,020</b><span>balanced sample tagged by Gemini, 14 fields each, every answer checked by code</span></div>
+      <div class="step"><b>77%</b><span>agreement with 25 posts labelled by hand before any AI tagging</span></div>
+    </div>
+    <div class="muted">Every AI answer passes a gate before it is saved: values must be in the codebook, a post that is not relevant cannot carry a reason, and the evidence quote must appear word for word in the post or it is removed.</div>
+  </section>
+
+  <section>
+    <h2>Try it: tag any review or post</h2>
+    <div class="muted">Paste a real Urban Company review, a Reddit comment, or write one yourself. English, Hindi or Hinglish all work. It runs the same codebook and checks used on the 1,020 posts.</div>
+    <div class="row">
+      <button class="chip" onclick="ex(0)">Example: local electrician</button>
+      <button class="chip" onclick="ex(1)">Example: happy but never rebooked</button>
+      <button class="chip" onclick="ex(2)">Example: Hinglish</button>
+    </div>
+    <textarea id="txt" placeholder="Paste a review or post here"></textarea>
+    <div><button class="btn" id="go" onclick="tag()">Tag this post</button></div>
+    <div id="out"></div>
+  </section>
+
+  <section>
+    <h2>What the data says (live from the tagged sheet)</h2>
+    <div class="muted">Relevant posts that say who handled the next home job:</div>
+    <div id="stats"><div class="spin"></div></div>
+  </section>
+
+  <section>
+    <h2>Read the evidence</h2>
+    <div class="muted">See a random tagged post where the next job went to:</div>
+    <div class="row">
+      <button class="chip" onclick="rnd('local_person')">A local person</button>
+      <button class="chip" onclick="rnd('did_it_ourselves')">Did it themselves</button>
+      <button class="chip" onclick="rnd('other_app')">Another app</button>
+      <button class="chip" onclick="rnd('uc_again')">Urban Company again</button>
+    </div>
+    <div id="post"></div>
+  </section>
+
+  <footer class="muted">
+    <span id="sheetline">Full data, every tag and the golden set: <a id="sheet" href="#" target="_blank">UC Discovery Engine sheet (view only)</a>.<br></span>
+    The solution built from these findings: <a href="./">Ghar Diary MVP</a>.
+  </footer>
+</div>
+
+<script>
+var API = 'https://script.google.com/macros/s/AKfycbyPzhtzJTclMHajuKFcryHE_DRw_o5Ge-qD2o4FdMVH9Q-zhQLztryG3ndDc-vCB478/exec';
+var SHEET = 'https://docs.google.com/spreadsheets/d/1om_GVvCd8TWda9LA6JEMTQ3MlNZV9xWnWE5UOIRLMlI/edit?usp=sharing';
+if (SHEET.indexOf('http') === 0) document.getElementById('sheet').href = SHEET; else document.getElementById('sheetline').style.display = 'none';
+
+var EX = [
+  'Booked AC service through the app last summer, the guy was good. But when the fan regulator stopped working last week I just called our colony electrician, he comes in 10 minutes and knows our wiring.',
+  'Very professional cleaning, on time and polite. Would recommend. Have not needed anything since, my father handles the plumber and electrician for our house.',
+  'Urban company ka service accha tha but har chhoti cheez ke liye app kholna, slot dhundhna... apna plumber bhaiya hai, ek call pe aa jaate hain aur sasta bhi.'
+];
+var LABEL = {
+  who_handled: { uc_again: 'Urban Company again', other_app: 'Another app', local_person: 'A local person', same_pro_direct: 'Same pro, outside the app', society_or_landlord: 'Society or landlord', family_member: 'Someone in the family', did_it_ourselves: 'Did it themselves', left_it: 'Left it', not_mentioned: 'Not mentioned' },
+  hypothesis: { H1: 'H1 · Need went unnoticed', H2: 'H2 · Did not know UC offers it', H3: 'H3 · Someone else handles the home', H4: 'H4 · Wants the same person', H5: 'H5 · Urgent, went to someone nearby', H6: 'H6 · Seasonal need, last minute', H7: 'H7 · Bad Urban Company experience', H8: 'H8 · Cheaper locally', none: 'None' }
+};
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function nice(v) { return String(v || '').replace(/_/g, ' '); }
+function call(body, ok, fail) {
+  fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
+    .then(function (r) { return r.json(); }).then(ok).catch(fail);
+}
+function ex(i) { document.getElementById('txt').value = EX[i]; }
+
+function tagsHtml(t, text) {
+  var h = '<div class="grid">' +
+    kv('Relevant', t.relevant) + kv('Post type', nice(t.post_type)) +
+    kv('Service', nice(t.category)) + kv('What triggered the need', nice(t.trigger)) +
+    kv('Who handled the next job', LABEL.who_handled[t.who_handled] || nice(t.who_handled)) +
+    kv('Main reason', LABEL.hypothesis[t.hypothesis] || t.hypothesis) +
+    kv('Urban Company experience', nice(t.uc_experience)) + kv('Second reason', LABEL.hypothesis[t.hypothesis_2] || t.hypothesis_2 || 'None') +
+    '</div>';
+  if (t.evidence_quote) h += '<div class="quote">"' + esc(t.evidence_quote) + '"</div>';
+  if (t.unmet_need) h += '<div class="muted"><b>Unmet need:</b> ' + esc(t.unmet_need) + '</div>';
+  return h;
+}
+function kv(k, v) { return '<div class="kv"><span>' + esc(k) + '</span><b>' + esc(v) + '</b></div>'; }
+
+function tag() {
+  var text = document.getElementById('txt').value.trim();
+  var out = document.getElementById('out'), b = document.getElementById('go');
+  if (text.length < 15) { out.innerHTML = '<div class="err">Please paste a longer review or post.</div>'; return; }
+  b.disabled = true; out.innerHTML = '<div class="row" style="align-items:center"><div class="spin"></div><span class="muted">Tagging with Gemini and running the checks...</span></div>';
+  call({ action: 'tag', text: text }, function (r) {
+    b.disabled = false;
+    if (!r.ok) { out.innerHTML = '<div class="err">' + esc(r.error) + '</div>'; return; }
+    var t = r.tags, f = t.flags || [];
+    var checks = '<div class="card" style="gap:6px"><b style="font-size:13px">Checks on the AI</b>' +
+      chk(f.filter(function (x) { return x.indexOf('bad_') === 0; }).length === 0, 'Every value is from the codebook', 'A value outside the codebook was replaced') +
+      chk(f.indexOf('rule1_fixed') < 0, 'Rule 1 holds (no reason given for an irrelevant post)', 'Rule 1 fixed: reason removed from an irrelevant post') +
+      chk(f.indexOf('quote_not_in_post') < 0, t.evidence_quote ? 'Evidence quote found word for word in the post' : 'No quote needed', 'The AI\'s quote was not in the post, so it was removed') +
+      '</div>';
+    out.innerHTML = '<div class="card">' + tagsHtml(t, text) + '</div>' + checks;
+  }, function () { b.disabled = false; out.innerHTML = '<div class="err">Could not reach the engine. Please try again.</div>'; });
+}
+function chk(good, okText, badText) { return '<div class="check ' + (good ? 'ok' : 'bad') + '"><span>' + (good ? '✓' : '!') + '</span><span>' + esc(good ? okText : badText) + '</span></div>'; }
+
+function stats() {
+  call({ action: 'stats' }, function (r) {
+    var el = document.getElementById('stats');
+    if (!r.ok) { el.innerHTML = '<div class="err">Could not load the numbers.</div>'; return; }
+    var keys = Object.keys(r.who_handled).sort(function (a, b) { return r.who_handled[b] - r.who_handled[a]; });
+    var max = r.who_handled[keys[0]] || 1, h = '';
+    keys.forEach(function (k, i) {
+      var n = r.who_handled[k], pct = Math.round(100 * n / r.handled);
+      h += '<div class="bar"><span>' + esc(LABEL.who_handled[k] || k) + '</span><div class="track"><div class="fill' + (k === 'uc_again' ? ' hi' : '') + '" style="width:' + (100 * n / max) + '%"></div></div><b>' + pct + '%</b></div>';
+    });
+    h += '<div class="muted" style="margin-top:6px">' + r.handled + ' of ' + r.relevant + ' relevant posts say who handled it, from ' + r.tagged + ' tagged posts. ' + r.gate_flagged + ' AI answers were corrected by the gate.</div>';
+    el.innerHTML = h;
+  }, function () { document.getElementById('stats').innerHTML = '<div class="err">Could not load the numbers.</div>'; });
+}
+
+function rnd(f) {
+  var el = document.getElementById('post');
+  el.innerHTML = '<div class="spin"></div>';
+  call({ action: 'random', filter: f }, function (r) {
+    if (!r.ok) { el.innerHTML = '<div class="err">' + esc(r.error) + '</div>'; return; }
+    var p = r.post;
+    el.innerHTML = '<div class="card"><div class="muted">' + esc(p.post_id) + ' · ' + esc(nice(p.source)) + (p.city ? ' · ' + esc(p.city) : '') + '</div>' +
+      '<div style="font-size:14px;line-height:21px">' + esc(p.text) + '</div>' + tagsHtml(p, p.text) + '</div>';
+  }, function () { el.innerHTML = '<div class="err">Could not load a post.</div>'; });
+}
+
+stats();
+</script>
+</body>
+</html>
